@@ -1,12 +1,11 @@
-﻿using Dallileth.DataScience.Solvers.GraphSearch;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dallileth.DataScience;
 using System.IO;
 using Dallileth.Sandbox.Models;
+using Dallileth.DataScience.Solvers;
 
 namespace Dallileth.Sandbox.Demos
 {
@@ -16,7 +15,7 @@ namespace Dallileth.Sandbox.Demos
         public async Task Run(ScreenRegion region)
         {
 
-            var DFS = Graphs.DFS(
+            var DFS = Search.DFS(
                   initial_items: new PathSearch[] { new PathSearch { Path = @"c:\searchfolder", PathType = PathType.Directory } },
                   get_neighbors: dir =>
                   {
@@ -34,7 +33,12 @@ namespace Dallileth.Sandbox.Demos
                   should_yield: search =>
                   {
                       return search.PathType == PathType.File && search.Path.EndsWith(".txt");
-                  });
+                  },
+                  max_depth:2);
+            if (!DFS.FirstOrDefault().Equals(default(PathSearch)))
+            {
+
+            }
         }
 
 

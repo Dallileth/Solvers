@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dallileth.DataScience.Solvers.GraphSearch
+namespace Dallileth.DataScience.Solvers
 {
-    public static class Graphs
+    public static class Search
     {
         /*
          Todo: Create an async api with:

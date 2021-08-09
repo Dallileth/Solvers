@@ -1,4 +1,4 @@
-﻿using Dallileth.DataScience.Solvers.GraphSearch;
+﻿using Dallileth.DataScience.Solvers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +37,7 @@ namespace Dallileth.Sandbox.Demos
                 }
             }
 
-            var stack = Graphs.AStar<XY, Direction>(
+            var stack = Search.AStar<XY, Direction>(
                 new XY[] { agent.XY.Value },
                 at_destination: xy => xy.Equals(flag.XY),
                 get_actions: xy => GetNeighbors(xy, map,region.W,region.H),
@@ -50,7 +50,7 @@ namespace Dallileth.Sandbox.Demos
                 });
             while(stack.Count>0)
             {
-                agent.XY = agent.XY.Value + stack.Pop();
+                agent.XY = agent.XY.Value + stack.Pop().action;
                 await Task.Delay((int)(map[agent.XY.Value.Y][agent.XY.Value.X]*100));
             }
         }

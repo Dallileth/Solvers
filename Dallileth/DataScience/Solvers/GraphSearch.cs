@@ -29,7 +29,7 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
         /// <param name="draw">Draws frontier nodes and visited nodes</param>
         /// <param name="draw_current">Return which node we are actively considering</param>
         /// <returns></returns>
-        public static Stack<ACTION> AStar<STATE, ACTION>(
+        public static Stack<(ACTION action, STATE expected_result)> AStar<STATE, ACTION>(
             IEnumerable<STATE> initial_nodes,
             Predicate<STATE> at_destination,
             Func<STATE, IEnumerable<(STATE dest, ACTION act, float cost)>> get_actions,
@@ -62,7 +62,7 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
                 var actions = get_actions(current);
                 foreach (var action in actions)
                 {
-                    if (action.cost<=0)
+                    if (action.cost <= 0)
                     {
                         throw new Exception("Costs shouldn't be negative"); //subject to debate!
                     }
@@ -85,12 +85,12 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
 
 
 
-            Stack<ACTION> q = new Stack<ACTION>();
+            Stack<(ACTION action, STATE expected_result)> q = new Stack<(ACTION action, STATE expected_result)>();
             //note: we assume that costs can't be negative
             while (visited[current].total_cost > 0)
             {
                 var item = visited[current];
-                q.Push(item.previous_action);
+                q.Push((item.previous_action, current));
                 current = visited[current].previous_state;
             }
             return q;
@@ -99,22 +99,22 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
 
 
         /// <summary>
-        /// Depth-first-search algorithm
+        /// Depth first search algorithm.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="initial_items"></param>
         /// <param name="get_neighbors"></param>
-        /// <param name="should_yield">Return true if T matches something we want</param>
-        /// <param name="should_break">Return true if no longer interested in searching</param>
+        /// <param name="should_yield"></param>
+        /// <param name="max_depth"></param>
         /// <returns></returns>
-        public static IEnumerable<T> DFS<T>(IEnumerable<T> initial_items, Func<T, IEnumerable<T>> get_neighbors, Predicate<T> should_yield = null, Predicate<T> should_break = null)
+        public static IEnumerable<T> DFS<T>(IEnumerable<T> initial_items, Func<T, IEnumerable<T>> get_neighbors, Predicate<T> should_yield, int max_depth = 20)
         {
-            Stack<T> stack = new Stack<T>();
+            Stack<(T item, int depth)> stack = new Stack<(T item, int depth)>();
 
             //populate open set
             foreach (var item in initial_items)
             {
-                stack.Push(item);
+                stack.Push((item, 0));
             }
 
             while (stack.Count >= 1)
@@ -122,35 +122,35 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
                 //pop from pop set and explore it
                 var current = stack.Pop();
 
-                foreach (var neigh in get_neighbors(current))
-                {
-                    stack.Push(neigh);
-                }
+                if (current.depth < max_depth)
+                    foreach (var neigh in get_neighbors(current.item))
+                    {
+                        stack.Push((neigh, current.depth + 1));
+                    }
 
-                if ((should_yield?.Invoke(current)) ?? true)
-                    yield return current;
-                if ((should_break?.Invoke(current)) ?? true)
-                    break;
+                if (should_yield(current.item))
+                {
+                    yield return current.item;
+                }
             }
         }
 
         /// <summary>
-        /// Depth-first-search algorithm
+        /// Breadth first search algorithm.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="initial_items"></param>
         /// <param name="get_neighbors"></param>
-        /// <param name="should_yield">Return true if T matches something we want</param>
-        /// <param name="should_break">Return true if no longer interested in searching</param>
-        /// <returns></returns>
-        public static IEnumerable<T> BFS<T>(IEnumerable<T> initial_items, Func<T, IEnumerable<T>> get_neighbors, Predicate<T> should_yield = null, Predicate<T> should_break = null)
+        /// <param name="should_yield"></param>
+        /// <param name="max_depth"></param>
+        public static IEnumerable<STATE> BFS<STATE, ACTION>(IEnumerable<STATE> initial_items, Func<STATE, IEnumerable<STATE>> get_neighbors, Predicate<STATE> should_yield, int max_depth = 20)
         {
-            Queue<T> queue = new Queue<T>();
+            Queue<(STATE item, int depth)> queue = new Queue<(STATE item, int depth)>();
 
             //populate open set
             foreach (var item in initial_items)
             {
-                queue.Enqueue(item);
+                queue.Enqueue((item, 0));
             }
 
             while (queue.Count >= 1)
@@ -158,15 +158,16 @@ namespace Dallileth.DataScience.Solvers.GraphSearch
                 //pop from pop set and explore it
                 var current = queue.Dequeue();
 
-                foreach (var neigh in get_neighbors(current))
-                {
-                    queue.Enqueue(neigh);
-                }
+                if (current.depth < max_depth)
+                    foreach (var neigh in get_neighbors(current.item))
+                    {
+                        queue.Enqueue((neigh, current.depth + 1));
+                    }
 
-                if ((should_yield?.Invoke(current)) ?? true)
-                    yield return current;
-                if ((should_break?.Invoke(current)) ?? true)
-                    break;
+                if (should_yield(current.item))
+                {
+                    yield return current.item;
+                }
             }
         }
     }
